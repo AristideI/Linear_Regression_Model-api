@@ -5,14 +5,14 @@ import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 
 # Load the trained model
-model = joblib.load("studentperfomance.joblib")
-scaler = joblib.load("scaler.joblib")
+model = joblib.load("dementia_model.joblib")
+
 # Initialize FastAPI
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or specify a list of origins that are allowed
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,11 +51,12 @@ def predict(data: InputData):
             ]
         ]
     )
-    # Scale the input data if necessary
-    input_data_scaled = scaler.transform(input_data)
 
     # Make prediction
-    prediction = model.predict(input_data_scaled)
+    prediction = model.predict(input_data)
 
     # Return the prediction as a response
     return {"prediction": prediction[0]}
+
+# Run the FastAPI application
+# uvicorn app:app --reload
