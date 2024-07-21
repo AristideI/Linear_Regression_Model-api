@@ -1,11 +1,36 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import joblib
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
+from dataEncoder import convertRequestToModelValue
 
 # Load the trained model
-model = joblib.load("dementia_model.joblib")
+model = joblib.load("dementia.joblib")
+
+
+class InputData(BaseModel):
+    diabetic: int
+    alcoholLevel: float
+    heartRate: float
+    bloodOxygenLevel: float
+    bodyTemperature: float
+    weight: float
+    mriDelay: float
+    age: float
+    educationLevel: str
+    dominantHand: str
+    Gender: str
+    Smoking_Status: str
+    APOE_ε4: str
+    Physical_Activity: str
+    Depression_Status: str
+    Cognitive_Test_Scores: float
+    Medication_History: str
+    Nutrition_Diet: str
+    Sleep_Quality: str
+    Chronic_Health_Conditions: str
+
 
 # Initialize FastAPI
 app = FastAPI()
@@ -21,42 +46,41 @@ app.add_middleware(
 
 # Define the input data schema
 class InputData(BaseModel):
-    HoursStudied: int
-    PreviousScores: int
-    ExtracurricularActivities: int
-    SleepHours: int
-    SampleQuestionPapersPracticed: int
-    # Add all the necessary features here
-    # featureN: float
+    diabetic: int
+    alcoholLevel: float
+    heartRate: float
+    bloodOxygenLevel: float
+    bodyTemperature: float
+    weight: float
+    mriDelay: float
+    age: float
+    educationLevel: str
+    dominantHand: str
+    Gender: str
+    Smoking_Status: str
+    APOE_ε4: str
+    Physical_Activity: str
+    Depression_Status: str
+    Cognitive_Test_Scores: float
+    Medication_History: str
+    Nutrition_Diet: str
+    Sleep_Quality: str
+    Chronic_Health_Conditions: str
 
 
-# Define a root endpoint
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Student Performance Prediction API"}
+    return {"message": "Welcome to the Dementia Prediction API"}
 
 
-# Define a prediction endpoint
 @app.post("/predict")
 def predict(data: InputData):
-    # Convert input data to the required format
-    input_data = np.array(
-        [
-            [
-                data.HoursStudied,
-                data.PreviousScores,
-                data.ExtracurricularActivities,
-                data.SleepHours,
-                data.SampleQuestionPapersPracticed,
-            ]
-        ]
-    )
+    # Convert input data to the required format for the model
+    input_data = [convertRequestToModelValue(data.dict())]
 
     # Make prediction
     prediction = model.predict(input_data)
+    print(prediction[0])
 
     # Return the prediction as a response
-    return {"prediction": prediction[0]}
-
-# Run the FastAPI application
-# uvicorn app:app --reload
+    return {"prediction": round(prediction[0], 0)}
